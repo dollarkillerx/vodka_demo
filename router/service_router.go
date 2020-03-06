@@ -4,8 +4,11 @@
  */
 package router
 
-import "awesome/core/router"
+import (
+	"awesome/controller"
+	"awesome/core/router"
+)
 
 func Registry(app *router.Router) {
-	app.Run1()
+	app.Run1(controller.Run1, controller.Run2)
 }

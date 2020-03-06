@@ -9,7 +9,7 @@ package router
 import (
 	pb "awesome/generate"
 	"context"
-	"errors"
+	"log"
 )
 
 type Router struct {
@@ -17,70 +17,148 @@ type Router struct {
 }
 
 func New() *Router {
-	return &Router{}
+	return &Router{
+		router: &serviceRouter{
+			run1FuncSlice: make([]RunFunc, 0),
+			run2FuncSlice: make([]RunFunc, 0),
+			run3FuncSlice: make([]RunFunc, 0),
+			run4FuncSlice: make([]RunFunc, 0),
+		},
+	}
 }
 
 func (r *Router) RegistryGRPC() *serviceRouter {
 	return r.router
 }
 
-func (r *Router) Run1(run1func ...Run1Func) {
+func (r *Router) Run1(run1func ...RunFunc) {
 	r.router.run1FuncSlice = append(r.router.run1FuncSlice, run1func...)
 }
 
-func (r *Router) Run2(run2func ...Run2Func) {
+func (r *Router) Run2(run2func ...RunFunc) {
 	r.router.run2FuncSlice = append(r.router.run2FuncSlice, run2func...)
 }
 
-func (r *Router) Run3(run3func ...Run3Func) {
+func (r *Router) Run3(run3func ...RunFunc) {
 	r.router.run3FuncSlice = append(r.router.run3FuncSlice, run3func...)
 }
 
-func (r *Router) Run4(run4func ...Run4Func) {
+func (r *Router) Run4(run4func ...RunFunc) {
 	r.router.run4FuncSlice = append(r.router.run4FuncSlice, run4func...)
 }
 
-func (r *Router) Run1Next(ctx context.Context, req *pb.Req) (*pb.Resp, error) {
-	r.router.run1index++
-	if r.router.run1index >= len(r.router.run1FuncSlice) {
-		return nil,errors.New("next number of methods exceeded")
-	}
-	return r.router.run1FuncSlice[r.router.run1index](ctx,req)
-}
-
 type serviceRouter struct {
-	run1index     int
-	run2index     int
-	run3index     int
-	run4index     int
-	run1FuncSlice []Run1Func
-	run2FuncSlice []Run2Func
-	run3FuncSlice []Run3Func
-	run4FuncSlice []Run4Func
+	run1FuncSlice []RunFunc
+	run2FuncSlice []RunFunc
+	run3FuncSlice []RunFunc
+	run4FuncSlice []RunFunc
 }
 
+type RouterContextItem interface {
+	_routerContext()
+}
 
+type RouterContext struct {
+	Ctx      RouterContextItem
+	funcList []RunFunc
+	index    int
+}
 
-type Run1Func func(ctx context.Context, req *pb.Req) (*pb.Resp, error)
+func (r *RouterContext) Next() {
+	r.index++
+	if r.index <= len(r.funcList) {
+		r.funcList[r.index-1](r)
+	} else {
+		log.Println("RouterContext Next  what ???")
+	}
+}
 
-type Run2Func func(req *pb.Req, ser pb.Service_Run2Server) error
+type Run1FuncContext struct {
+	Ctx  context.Context
+	Req  *pb.Req
+	Resp *pb.Resp
+	Err  error
+}
+type Run2FuncContext struct {
+	Req *pb.Req
+	Ser pb.Service_Run2Server
+	Err error
+}
+type Run3FuncContext struct {
+	Ser pb.Service_Run3Server
+	Err error
+}
+type Run4FuncContext struct {
+	Ser pb.Service_Run4Server
+	Err error
+}
 
-type Run3Func func(ser pb.Service_Run3Server) error
+func (r *Run1FuncContext) _routerContext() {}
+func (r *Run2FuncContext) _routerContext() {}
+func (r *Run3FuncContext) _routerContext() {}
+func (r *Run4FuncContext) _routerContext() {}
 
-type Run4Func func(ser pb.Service_Run4Server) error
+type RunFunc func(ctx *RouterContext)
 
 func (s *serviceRouter) Run1(ctx context.Context, req *pb.Req) (*pb.Resp, error) {
-	return s.run1FuncSlice[0](ctx, req)
+	routerContext := RouterContext{
+		Ctx: &Run1FuncContext{
+			Ctx:  ctx,
+			Req:  req,
+			Resp: nil,
+			Err:  nil,
+		},
+		funcList: s.run1FuncSlice,
+		index:    0,
+	}
+
+	routerContext.Next()
+	funcContext := routerContext.Ctx.(*Run1FuncContext)
+	return funcContext.Resp, funcContext.Err
 }
 
 func (s *serviceRouter) Run2(req *pb.Req, ser pb.Service_Run2Server) error {
-	return s.run2FuncSlice[0](req, ser)
+	routerContext := RouterContext{
+		Ctx: &Run2FuncContext{
+			Req: req,
+			Ser: ser,
+			Err: nil,
+		},
+		funcList: s.run2FuncSlice,
+		index:    0,
+	}
+
+	routerContext.Next()
+	funcContext := routerContext.Ctx.(*Run2FuncContext)
+	return funcContext.Err
 }
 
 func (s *serviceRouter) Run3(ser pb.Service_Run3Server) error {
-	return s.run3FuncSlice[0](ser)
+	routerContext := RouterContext{
+		Ctx: &Run3FuncContext{
+			Err: nil,
+			Ser: ser,
+		},
+		funcList: s.run3FuncSlice,
+		index:    0,
+	}
+
+	routerContext.Next()
+	funcContext := routerContext.Ctx.(*Run3FuncContext)
+	return funcContext.Err
 }
 
 func (s *serviceRouter) Run4(ser pb.Service_Run4Server) error {
-	return s.run4FuncSlice[0](ser)
+	routerContext := RouterContext{
+		Ctx: &Run4FuncContext{
+			Err: nil,
+			Ser: ser,
+		},
+		funcList: s.run4FuncSlice,
+		index:    0,
+	}
+
+	routerContext.Next()
+	funcContext := routerContext.Ctx.(*Run4FuncContext)
+	return funcContext.Err
 }
