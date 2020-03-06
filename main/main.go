@@ -7,6 +7,7 @@ package main
 import (
 	"awesome/core/router"
 	"awesome/generate"
+	router2 "awesome/router"
 	"log"
 	"net"
 
@@ -16,7 +17,8 @@ import (
 func main() {
 	server := grpc.NewServer()
 	router := router.New()
-	pb.RegisterServiceServer(server, router.Registry())
+	router2.Registry(router)                                // 路由注册
+	pb.RegisterServiceServer(server, router.RegistryGRPC()) // 路由注册到GRPC处
 	dial, err := net.Listen("tcp", "0.0.0.0:8080")
 	if err != nil {
 		log.Fatalln(err)

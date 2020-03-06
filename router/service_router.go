@@ -4,7 +4,8 @@
  */
 package router
 
-import (
-	"awesome/generate"
-	"context"
-)
+import "awesome/core/router"
+
+func Registry(app *router.Router) {
+	app.Run1()
+}
