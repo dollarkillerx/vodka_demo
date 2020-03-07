@@ -8,7 +8,7 @@ import (
 	"vodka/core/router"
 )
 
-func Run1(ctx *router.RouterContext) {
-	context := ctx.Ctx.(*router.Run1FuncContext)
+func Run4(ctx *router.RouterContext) {
+	context := ctx.Ctx.(*router.Run4FuncContext)
 	context = context
 }

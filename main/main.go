@@ -5,23 +5,19 @@
 package main
 
 import (
-	"awesome/core/router"
-	"awesome/generate"
-	router2 "awesome/router"
 	"log"
-	"net"
+	"vodka/core/router"
+	"vodka/generate"
+	router2 "vodka/router"
 
-	"google.golang.org/grpc"
+	"github.com/dollarkillerx/vodka"
 )
 
 func main() {
-	server := grpc.NewServer()
+	v := vodka.New()
 	router := router.New()
-	router2.Registry(router)                                // 路由注册
-	pb.RegisterServiceServer(server, router.RegistryGRPC()) // 路由注册到GRPC处
-	dial, err := net.Listen("tcp", "0.0.0.0:8080")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	server.Serve(dial)
+	router2.Registry(router)
+	pb.RegisterServiceServer(v.RegisterServer(), router.RegistryGRPC())
+
+	log.Println(v.Run(":8080"))
 }

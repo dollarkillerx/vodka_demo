@@ -1,15 +1,13 @@
 /**
-*@program: awesomeProject
-*@description: https://github.com/dollarkillerx
-*@author: dollarkiller [dollarkiller@dollarkiller.com]
-*@create: 2020-03-06 13:51
+*@Program: vodka
+*@MicroServices Framework: https://github.com/dollarkillerx
  */
 package router
 
 import (
-	pb "awesome/generate"
 	"context"
 	"log"
+	pb "vodka/generate"
 )
 
 type Router struct {
@@ -19,10 +17,14 @@ type Router struct {
 func New() *Router {
 	return &Router{
 		router: &serviceRouter{
-			run1FuncSlice: make([]RunFunc, 0),
-			run2FuncSlice: make([]RunFunc, 0),
-			run3FuncSlice: make([]RunFunc, 0),
-			run4FuncSlice: make([]RunFunc, 0),
+
+			Run1FuncSlice: make([]RunFunc, 0),
+
+			Run2FuncSlice: make([]RunFunc, 0),
+
+			Run3FuncSlice: make([]RunFunc, 0),
+
+			Run4FuncSlice: make([]RunFunc, 0),
 		},
 	}
 }
@@ -31,27 +33,30 @@ func (r *Router) RegistryGRPC() *serviceRouter {
 	return r.router
 }
 
-func (r *Router) Run1(run1func ...RunFunc) {
-	r.router.run1FuncSlice = append(r.router.run1FuncSlice, run1func...)
+func (r *Router) Run1(Run1func ...RunFunc) {
+	r.router.Run1FuncSlice = append(r.router.Run1FuncSlice, Run1func...)
 }
 
-func (r *Router) Run2(run2func ...RunFunc) {
-	r.router.run2FuncSlice = append(r.router.run2FuncSlice, run2func...)
+func (r *Router) Run2(Run2func ...RunFunc) {
+	r.router.Run2FuncSlice = append(r.router.Run2FuncSlice, Run2func...)
 }
 
-func (r *Router) Run3(run3func ...RunFunc) {
-	r.router.run3FuncSlice = append(r.router.run3FuncSlice, run3func...)
+func (r *Router) Run3(Run3func ...RunFunc) {
+	r.router.Run3FuncSlice = append(r.router.Run3FuncSlice, Run3func...)
 }
 
-func (r *Router) Run4(run4func ...RunFunc) {
-	r.router.run4FuncSlice = append(r.router.run4FuncSlice, run4func...)
+func (r *Router) Run4(Run4func ...RunFunc) {
+	r.router.Run4FuncSlice = append(r.router.Run4FuncSlice, Run4func...)
 }
 
 type serviceRouter struct {
-	run1FuncSlice []RunFunc
-	run2FuncSlice []RunFunc
-	run3FuncSlice []RunFunc
-	run4FuncSlice []RunFunc
+	Run1FuncSlice []RunFunc
+
+	Run2FuncSlice []RunFunc
+
+	Run3FuncSlice []RunFunc
+
+	Run4FuncSlice []RunFunc
 }
 
 type RouterContextItem interface {
@@ -62,6 +67,22 @@ type RouterContext struct {
 	Ctx      RouterContextItem
 	funcList []RunFunc
 	index    int
+	psg      *PrometheusMsg
+}
+
+type PrometheusMsg struct {
+	FuncName    string // 方法名称
+	ServerName  string // 服务名称
+	Environment string // 环境 开发 or 测试
+	Cluster     string // 集群名称
+	EngineRoom  string // 机房
+	TraceId     string // 分布式追踪id
+	RespIP      string // 服务端IP
+	ReqIP       string // 客户端IP
+}
+
+func (r *RouterContext) GetPrometheusMsg() *PrometheusMsg {
+	return r.psg
 }
 
 func (r *RouterContext) Next() {
@@ -77,28 +98,40 @@ type Run1FuncContext struct {
 	Ctx  context.Context
 	Req  *pb.Req
 	Resp *pb.Resp
-	Err  error
+
+	Err error
 }
+
 type Run2FuncContext struct {
 	Req *pb.Req
 	Ser pb.Service_Run2Server
+
 	Err error
 }
+
 type Run3FuncContext struct {
 	Ser pb.Service_Run3Server
+
 	Err error
 }
+
 type Run4FuncContext struct {
 	Ser pb.Service_Run4Server
+
 	Err error
 }
 
 func (r *Run1FuncContext) _routerContext() {}
+
 func (r *Run2FuncContext) _routerContext() {}
+
 func (r *Run3FuncContext) _routerContext() {}
+
 func (r *Run4FuncContext) _routerContext() {}
 
 type RunFunc func(ctx *RouterContext)
+
+// 下面是主题方法
 
 func (s *serviceRouter) Run1(ctx context.Context, req *pb.Req) (*pb.Resp, error) {
 	routerContext := RouterContext{
@@ -108,8 +141,11 @@ func (s *serviceRouter) Run1(ctx context.Context, req *pb.Req) (*pb.Resp, error)
 			Resp: nil,
 			Err:  nil,
 		},
-		funcList: s.run1FuncSlice,
+		funcList: s.Run1FuncSlice,
 		index:    0,
+		psg: &PrometheusMsg{
+			FuncName: "Run1",
+		},
 	}
 
 	routerContext.Next()
@@ -124,7 +160,7 @@ func (s *serviceRouter) Run2(req *pb.Req, ser pb.Service_Run2Server) error {
 			Ser: ser,
 			Err: nil,
 		},
-		funcList: s.run2FuncSlice,
+		funcList: s.Run2FuncSlice,
 		index:    0,
 	}
 
@@ -139,7 +175,7 @@ func (s *serviceRouter) Run3(ser pb.Service_Run3Server) error {
 			Err: nil,
 			Ser: ser,
 		},
-		funcList: s.run3FuncSlice,
+		funcList: s.Run3FuncSlice,
 		index:    0,
 	}
 
@@ -154,7 +190,7 @@ func (s *serviceRouter) Run4(ser pb.Service_Run4Server) error {
 			Err: nil,
 			Ser: ser,
 		},
-		funcList: s.run4FuncSlice,
+		funcList: s.Run4FuncSlice,
 		index:    0,
 	}
 
