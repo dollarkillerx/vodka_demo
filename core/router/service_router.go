@@ -33,6 +33,14 @@ func (r *Router) RegistryGRPC() *serviceRouter {
 	return r.router
 }
 
+// 全局中间件
+func (r *Router) Use(middleware ...RunFunc) {
+	r.router.Run1FuncSlice = append(r.router.Run1FuncSlice, middleware...)
+	r.router.Run2FuncSlice = append(r.router.Run2FuncSlice, middleware...)
+	r.router.Run3FuncSlice = append(r.router.Run3FuncSlice, middleware...)
+	r.router.Run4FuncSlice = append(r.router.Run4FuncSlice, middleware...)
+}
+
 func (r *Router) Run1(Run1func ...RunFunc) {
 	r.router.Run1FuncSlice = append(r.router.Run1FuncSlice, Run1func...)
 }

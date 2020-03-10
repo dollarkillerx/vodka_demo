@@ -5,12 +5,17 @@
 package router
 
 import (
+	"log"
 	"vodka/controller"
 	"vodka/core/router"
 )
 
 func Registry(app *router.Router) {
 
+	app.Use(func(ctx *router.RouterContext) {
+		log.Println("a")
+		ctx.Next()
+	})
 	app.Run1(controller.Run1)
 
 	app.Run2(controller.Run2)
