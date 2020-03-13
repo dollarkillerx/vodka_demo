@@ -16,6 +16,7 @@ func Registry(app *router.Router) {
 		log.Println("a")
 		ctx.Next()
 	})
+
 	app.Run1(controller.Run1)
 
 	app.Run2(controller.Run2)

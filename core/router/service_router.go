@@ -6,9 +6,12 @@ package router
 
 import (
 	"context"
+	"fmt"
 	"log"
 	pb "vodka/generate"
 )
+
+var ServerAddr string
 
 type Router struct {
 	router *serviceRouter
@@ -73,9 +76,11 @@ type RouterContextItem interface {
 
 type RouterContext struct {
 	Ctx      RouterContextItem
+	Context  context.Context
 	funcList []RunFunc
 	index    int
 	psg      *PrometheusMsg
+	err      error
 }
 
 type PrometheusMsg struct {
@@ -100,6 +105,13 @@ func (r *RouterContext) Next() {
 	} else {
 		log.Println("RouterContext Next  what ???")
 	}
+}
+
+func (r *RouterContext) ErrSet(err error) {
+	r.err = err
+}
+func (r *RouterContext) ErrGet() error {
+	return r.err
 }
 
 type Run1FuncContext struct {
@@ -149,10 +161,12 @@ func (s *serviceRouter) Run1(ctx context.Context, req *pb.Req) (*pb.Resp, error)
 			Resp: nil,
 			Err:  nil,
 		},
+		Context:context.Background(),
 		funcList: s.Run1FuncSlice,
 		index:    0,
 		psg: &PrometheusMsg{
 			FuncName: "Run1",
+			ServerName:fmt.Sprintf("%s:%s","service",ServerAddr),
 		},
 	}
 
