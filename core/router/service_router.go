@@ -1,3 +1,4 @@
+ 
 /**
 *@Program: vodka
 *@MicroServices Framework: https://github.com/dollarkillerx
@@ -20,14 +21,15 @@ type Router struct {
 func New() *Router {
 	return &Router{
 		router: &serviceRouter{
-
+			
 			Run1FuncSlice: make([]RunFunc, 0),
-
+			
 			Run2FuncSlice: make([]RunFunc, 0),
-
+			
 			Run3FuncSlice: make([]RunFunc, 0),
-
+			
 			Run4FuncSlice: make([]RunFunc, 0),
+			
 		},
 	}
 }
@@ -36,13 +38,18 @@ func (r *Router) RegistryGRPC() *serviceRouter {
 	return r.router
 }
 
-// 全局中间件
 func (r *Router) Use(middleware ...RunFunc) {
+
 	r.router.Run1FuncSlice = append(r.router.Run1FuncSlice, middleware...)
+
 	r.router.Run2FuncSlice = append(r.router.Run2FuncSlice, middleware...)
+
 	r.router.Run3FuncSlice = append(r.router.Run3FuncSlice, middleware...)
+
 	r.router.Run4FuncSlice = append(r.router.Run4FuncSlice, middleware...)
+
 }
+
 
 func (r *Router) Run1(Run1func ...RunFunc) {
 	r.router.Run1FuncSlice = append(r.router.Run1FuncSlice, Run1func...)
@@ -61,6 +68,7 @@ func (r *Router) Run4(Run4func ...RunFunc) {
 }
 
 type serviceRouter struct {
+
 	Run1FuncSlice []RunFunc
 
 	Run2FuncSlice []RunFunc
@@ -68,6 +76,7 @@ type serviceRouter struct {
 	Run3FuncSlice []RunFunc
 
 	Run4FuncSlice []RunFunc
+
 }
 
 type RouterContextItem interface {
@@ -76,9 +85,9 @@ type RouterContextItem interface {
 
 type RouterContext struct {
 	Ctx      RouterContextItem
-	Context  context.Context
 	funcList []RunFunc
 	index    int
+	Context  context.Context
 	psg      *PrometheusMsg
 	err      error
 }
@@ -98,6 +107,13 @@ func (r *RouterContext) GetPrometheusMsg() *PrometheusMsg {
 	return r.psg
 }
 
+func (r *RouterContext) ErrSet(err error) {
+	r.err = err
+}
+func (r *RouterContext) ErrGet() error {
+	return r.err
+}
+
 func (r *RouterContext) Next() {
 	r.index++
 	if r.index <= len(r.funcList) {
@@ -107,39 +123,38 @@ func (r *RouterContext) Next() {
 	}
 }
 
-func (r *RouterContext) ErrSet(err error) {
-	r.err = err
-}
-func (r *RouterContext) ErrGet() error {
-	return r.err
-}
-
 type Run1FuncContext struct {
+	
 	Ctx  context.Context
 	Req  *pb.Req
 	Resp *pb.Resp
-
-	Err error
+	
+	Err  error
 }
 
 type Run2FuncContext struct {
-	Req *pb.Req
-	Ser pb.Service_Run2Server
-
-	Err error
+	
+	Req  *pb.Req
+	Ser pb.Service_Run2Server	
+	
+	Err  error
 }
 
 type Run3FuncContext struct {
+	
 	Ser pb.Service_Run3Server
-
-	Err error
+	
+	Err  error
 }
 
 type Run4FuncContext struct {
+	
 	Ser pb.Service_Run4Server
-
-	Err error
+	
+	Err  error
 }
+
+
 
 func (r *Run1FuncContext) _routerContext() {}
 
@@ -153,20 +168,21 @@ type RunFunc func(ctx *RouterContext)
 
 // 下面是主题方法
 
+
 func (s *serviceRouter) Run1(ctx context.Context, req *pb.Req) (*pb.Resp, error) {
 	routerContext := RouterContext{
 		Ctx: &Run1FuncContext{
 			Ctx:  ctx,
 			Req:  req,
-			Resp: nil,
+			Resp: &pb.Resp{},
 			Err:  nil,
 		},
-		Context:context.Background(),
 		funcList: s.Run1FuncSlice,
 		index:    0,
+		Context:context.Background(),
 		psg: &PrometheusMsg{
 			FuncName: "Run1",
-			ServerName:fmt.Sprintf("%s:%s","service",ServerAddr),
+			ServerName:fmt.Sprintf("%s:%s","Service",ServerAddr),
 		},
 	}
 
@@ -174,6 +190,8 @@ func (s *serviceRouter) Run1(ctx context.Context, req *pb.Req) (*pb.Resp, error)
 	funcContext := routerContext.Ctx.(*Run1FuncContext)
 	return funcContext.Resp, funcContext.Err
 }
+
+
 
 func (s *serviceRouter) Run2(req *pb.Req, ser pb.Service_Run2Server) error {
 	routerContext := RouterContext{
@@ -184,12 +202,19 @@ func (s *serviceRouter) Run2(req *pb.Req, ser pb.Service_Run2Server) error {
 		},
 		funcList: s.Run2FuncSlice,
 		index:    0,
+		Context:context.Background(),
+		psg: &PrometheusMsg{
+			FuncName: "Run2",
+			ServerName:fmt.Sprintf("%s:%s","Service",ServerAddr),
+		},
 	}
 
 	routerContext.Next()
 	funcContext := routerContext.Ctx.(*Run2FuncContext)
 	return funcContext.Err
 }
+
+
 
 func (s *serviceRouter) Run3(ser pb.Service_Run3Server) error {
 	routerContext := RouterContext{
@@ -199,12 +224,19 @@ func (s *serviceRouter) Run3(ser pb.Service_Run3Server) error {
 		},
 		funcList: s.Run3FuncSlice,
 		index:    0,
+		Context:context.Background(),
+		psg: &PrometheusMsg{
+			FuncName: "Run3",
+			ServerName:fmt.Sprintf("%s:%s","Service",ServerAddr),
+		},
 	}
 
 	routerContext.Next()
 	funcContext := routerContext.Ctx.(*Run3FuncContext)
 	return funcContext.Err
 }
+
+
 
 func (s *serviceRouter) Run4(ser pb.Service_Run4Server) error {
 	routerContext := RouterContext{
@@ -214,9 +246,16 @@ func (s *serviceRouter) Run4(ser pb.Service_Run4Server) error {
 		},
 		funcList: s.Run4FuncSlice,
 		index:    0,
+		Context:context.Background(),
+		psg: &PrometheusMsg{
+			FuncName: "Run4",
+			ServerName:fmt.Sprintf("%s:%s","Service",ServerAddr),
+		},
 	}
 
 	routerContext.Next()
 	funcContext := routerContext.Ctx.(*Run4FuncContext)
 	return funcContext.Err
 }
+
+

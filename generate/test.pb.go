@@ -236,7 +236,9 @@ func init() {
 	proto.RegisterType((*Resp)(nil), "pb.Resp")
 }
 
-func init() { proto.RegisterFile("test.proto", fileDescriptor_c161fcfdc0c3ff1e) }
+func init() {
+	proto.RegisterFile("test.proto", fileDescriptor_c161fcfdc0c3ff1e)
+}
 
 var fileDescriptor_c161fcfdc0c3ff1e = []byte{
 	// 230 bytes of a gzipped FileDescriptorProto
@@ -259,11 +261,11 @@ var fileDescriptor_c161fcfdc0c3ff1e = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // ServiceClient is the client API for Service service.
 //
@@ -276,10 +278,10 @@ type ServiceClient interface {
 }
 
 type serviceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewServiceClient(cc *grpc.ClientConn) ServiceClient {
+func NewServiceClient(cc grpc.ClientConnInterface) ServiceClient {
 	return &serviceClient{cc}
 }
 

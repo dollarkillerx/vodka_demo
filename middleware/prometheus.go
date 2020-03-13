@@ -1,8 +1,7 @@
+
 /**
-*@program: vodka_demo
-*@description: prometheus 监控统计  用户可随即扩展监控内容
-*@author: dollarkiller [dollarkiller@dollarkiller.com]
-*@create: 2020-03-13 15:07
+*@Program: vodka
+*@MicroServices Framework: https://github.com/dollarkillerx
  */
 package middleware
 
@@ -26,4 +25,3 @@ func BasePrometheus(ctx *router.RouterContext) {
 	middleware2.Prometheus.Latency(ctx.Context, msg.ServerName,
 		msg.FuncName, time.Since(startTime).Nanoseconds()/1000)
 }
-
