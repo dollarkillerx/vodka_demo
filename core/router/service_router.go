@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"log"
 	pb "vodka/generate"
+
+	"github.com/dollarkillerx/vodka/server"
 )
 
 var ServerAddr string
@@ -182,7 +184,7 @@ func (s *serviceRouter) Run1(ctx context.Context, req *pb.Req) (*pb.Resp, error)
 		Context:context.Background(),
 		psg: &PrometheusMsg{
 			FuncName: "Run1",
-			ServerName:fmt.Sprintf("%s:%s","Service",ServerAddr),
+			ServerName:fmt.Sprintf("%s:%s:%s",server.Config.ServiceName,"Service",ServerAddr),
 		},
 	}
 
@@ -205,7 +207,7 @@ func (s *serviceRouter) Run2(req *pb.Req, ser pb.Service_Run2Server) error {
 		Context:context.Background(),
 		psg: &PrometheusMsg{
 			FuncName: "Run2",
-			ServerName:fmt.Sprintf("%s:%s","Service",ServerAddr),
+			ServerName:fmt.Sprintf("%s:%s:%s",server.Config.ServiceName,"Service",ServerAddr),
 		},
 	}
 
@@ -227,7 +229,7 @@ func (s *serviceRouter) Run3(ser pb.Service_Run3Server) error {
 		Context:context.Background(),
 		psg: &PrometheusMsg{
 			FuncName: "Run3",
-			ServerName:fmt.Sprintf("%s:%s","Service",ServerAddr),
+			ServerName:fmt.Sprintf("%s:%s:%s",server.Config.ServiceName,"Service",ServerAddr),
 		},
 	}
 
